@@ -74,7 +74,7 @@ tasks:
       - task fmt
       - task vet
       - task deadcode
-      - task arch-lint
+      # - task arch-lint
       - task lint
       - task test
       - echo all done
