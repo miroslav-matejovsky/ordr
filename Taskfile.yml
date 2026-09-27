@@ -87,6 +87,14 @@ tasks:
     cmds:
       - go run .
 
+# ---- release ----
+
+  release:
+    desc: 'Tag and push a Go module release from main, usage: task release -- 0.1.0'
+    silent: true
+    cmds:
+      - pwsh -NoProfile -NonInteractive -File taskfile/release.ps1 -Version "{{.CLI_ARGS}}"
+
 # ---- maintenance tasks ----
 
   vendor:
