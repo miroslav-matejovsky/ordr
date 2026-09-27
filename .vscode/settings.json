@@ -87,6 +87,7 @@
     "govulncheck",
     "healthz",
     "HTMX",
+    "Journaling",
     "LASTEXITCODE",
     "matejovsky",
     "miroslav",
@@ -94,6 +95,7 @@
     "overcomplicate",
     "pkgname",
     "taskfile",
-    "Wardley"
+    "Wardley",
+    "WSJF"
   ]
 }

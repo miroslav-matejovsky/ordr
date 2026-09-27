@@ -22,28 +22,84 @@ Progress is measured by uncertainty removed, assumptions validated, and decision
 
 ## Principles
 
-- Plain text is the source of truth.
-- History is preserved explicitly.
-- Humans own the thinking.
-- The tool generates views and projections.
-- Relative ordering is preferred over estimates.
-- Evidence is preferred over opinion.
-- Decisions are more important than activity.
+ORDR is built around three principles:
+
+| Principle | Description |
+|-----------|-------------|
+| [Decisions over Information](dev/principles/1-decisions-over-information.md) | Information exists to improve decisions. |
+| [Knowledge over Activity](dev/principles/2-knowledge-over-activity.md) | Progress is measured by learning rather than effort. |
+| [Comparison over Estimation](dev/principles/3-comparison-over-estimation.md) | Relative judgment is preferred over false precision. |
+
+## Core Architecture
+
+ORDR separates knowledge, relationships, and projections.
+
+```text
+Knowledge + Graph ──> Projections
+```
+
+### Knowledge
+
+Human-readable records that capture understanding.
+
+Examples:
+
+- Opportunities
+- Decisions
+- Evidence
+- Reviews
+- Notes
+- Wardley Maps
+
+Knowledge answers:
+
+- What do we know?
+- Why do we believe it?
+- What changed?
+- What decisions were made?
+
+### Graph
+
+Explicit relationships between knowledge.
+
+Examples:
+
+- supports
+- blocks
+- enables
+- invalidates
+- relates
+- greater-than (`>`)
+
+Graph answers:
+
+- What depends on what?
+- What supports what?
+- What blocks what?
+- What is more important than what?
+- What changed because of a decision?
+
+### Projections
+
+Generated views derived from knowledge and graph relationships.
+
+Examples:
+
+- Opportunity Rankings
+- Strategic Opportunity Matrix
+- Decision Readiness Board
+- Review Summaries
+- Dependency Views
+- Wardley Projections
+
+Projections are temporary.
+
+Knowledge and relationships are the source of truth.
 
 ## Core Workflow
 
 ```text
-Opportunity
-    ↓
-Framing
-    ↓
-Investigation
-    ↓
-Evidence
-    ↓
-Options
-    ↓
-Decision Ready
+Opportunity -> Framing -> Investigation -> Evidence -> Options -> Decision Ready
 ```
 
 ## Key Concepts
@@ -61,16 +117,24 @@ Anything worth exploring:
 
 ### Relative Ordering
 
-Instead of scores, points, or T-shirt sizes, opportunities are compared directly.
+ORDR prefers comparison over scoring.
 
-Examples:
+Instead of:
 
-- Strategic Value
-- Uncertainty
-- Complexity
-- Urgency
+```text
+Playback = 87
+AI Assistant = 72
+Platform = 91
+```
 
-When information is incomplete, comparison is often more reliable than estimation.
+ORDR stores:
+
+```text
+Platform > Playback
+Playback > AI Assistant
+```
+
+When information is incomplete, relative comparison is often more reliable than estimation.
 
 ### Uncertainty Reduction
 
@@ -103,29 +167,19 @@ The goal is to reach a state where a decision can be made with acceptable confid
 - Evidence-Based Management
 - Architecture Decision Records (ADR)
 
-## Repository Structure
-
-```text
-ordr/
-├── opportunities/
-├── decisions/
-├── reviews/
-├── maps/
-└── projections/
-```
-
-Knowledge, decisions, and learning are stored explicitly as text.
-
-ORDR generates temporary views, rankings, matrices, and summaries from those records.
-
 ## Non-Goals
+
+ORDR is not intended for:
 
 - Project management
 - Sprint planning
 - Resource allocation
 - Work item tracking
 - Predictive estimation
+- Reporting activity
 
 ## Mission
 
 Bring order to opportunities before they become commitments.
+
+Transform uncertainty into decision readiness.
