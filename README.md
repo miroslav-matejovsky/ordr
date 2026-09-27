@@ -165,9 +165,10 @@ One vertical slice: read knowledge and graph sources from a workspace, validate 
 ### Build and run
 
 ```text
-go build -o bin/ordr ./cmd/ordr
-go run ./cmd/ordr project --workspace examples/basic
-go run ./cmd/ordr project value --workspace examples/basic --stdout
+go build -o bin/ordr .
+go install github.com/miroslav-matejovsky/ordr@latest
+go run . project --workspace examples/basic
+go run . project value --workspace examples/basic --stdout
 go test ./...
 ```
 
@@ -186,7 +187,7 @@ go test ./...
 | `graph/` | Comparisons, relations, validation, partial ordering. `graph/cuegraph` reads CUE. |
 | `projections/` | Markdown views derived from knowledge and graph. |
 | `workspace/` | Discovery, configuration, reading sources, writing projections. |
-| `cli/` | Argument parsing and output. `cmd/ordr` is the entry point. |
+| `cli/` | Argument parsing and output. `main.go` in the root is the entry point. |
 | `examples/` | Sample workspaces. |
 
 Dependencies point toward the domain: `cli -> workspace, projections -> graph -> knowledge`.

@@ -36,7 +36,7 @@ tasks:
       - echo vet done
 
   deadcode:
-    desc: Check for unreachable functions in cmd entry points
+    desc: Check for unreachable functions from the main package
     silent: true
     cmds:
       - pwsh -NoProfile -NonInteractive -File taskfile/deadcode.ps1
@@ -74,7 +74,7 @@ tasks:
       - task fmt
       - task vet
       - task deadcode
-      # - task arch-lint
+      - task arch-lint
       - task lint
       - task test
       - echo all done
@@ -85,7 +85,7 @@ tasks:
     desc: Run the application (for development)
     silent: true
     cmds:
-      - go run ./cmd/...
+      - go run .
 
 # ---- maintenance tasks ----
 
