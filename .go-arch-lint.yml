@@ -15,14 +15,31 @@ excludeFiles:
   - "^.*\/test\/.*$"
 
 vendors:
-  # TODO just an example
-  x-sync: { in: "golang.org/x/sync/**" }
- 
+  cue: { in: "cuelang.org/go/**" }
+
+# One component per bounded context. Dependencies point toward the domain:
+# main -> cli -> workspace, projections -> graph -> knowledge.
 components:
-  # TODO: just an example for now
-  buildid: { in: internal/buildid }
+  main: { in: . }
+  cli: { in: cli }
+  workspace: { in: workspace }
+  projections: { in: projections }
+  graph: { in: graph }
+  cuegraph: { in: graph/cuegraph }
+  knowledge: { in: knowledge }
 
 deps:
-  some-component:
-    canUse: [x-sync]
-    mayDependOn: [some-other-component]
+  main:
+    mayDependOn: [cli]
+  cli:
+    mayDependOn: [workspace, projections]
+  workspace:
+    mayDependOn: [knowledge, graph, cuegraph]
+    canUse: [cue]
+  projections:
+    mayDependOn: [knowledge, graph]
+  cuegraph:
+    mayDependOn: [knowledge, graph]
+    canUse: [cue]
+  graph:
+    mayDependOn: [knowledge]

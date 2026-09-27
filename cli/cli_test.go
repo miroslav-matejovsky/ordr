@@ -59,7 +59,7 @@ func TestProjectBasicExample(t *testing.T) {
 	for _, name := range []string{"value.md", "uncertainty.md", "complexity.md", "relationships.md", "readiness.md"} {
 		want := readNormalized(t, filepath.Join(basic, "projections", name))
 		got := readNormalized(t, filepath.Join(ws, "projections", name))
-		require.Equal(t, want, got, "%s differs from examples/basic; regenerate with: go run ./cmd/ordr project --workspace examples/basic", name)
+		require.Equal(t, want, got, "%s differs from examples/basic; regenerate with: go run . project --workspace examples/basic", name)
 	}
 }
 

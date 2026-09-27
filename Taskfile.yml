@@ -36,7 +36,7 @@ tasks:
       - echo vet done
 
   deadcode:
-    desc: Check for unreachable functions in cmd entry points
+    desc: Check for unreachable functions from the main package
     silent: true
     cmds:
       - pwsh -NoProfile -NonInteractive -File taskfile/deadcode.ps1
@@ -74,7 +74,7 @@ tasks:
       - task fmt
       - task vet
       - task deadcode
-      # - task arch-lint
+      - task arch-lint
       - task lint
       - task test
       - echo all done
@@ -85,7 +85,15 @@ tasks:
     desc: Run the application (for development)
     silent: true
     cmds:
-      - go run ./cmd/...
+      - go run .
+
+# ---- release ----
+
+  release:
+    desc: 'Tag and push a Go module release from main, usage: task release -- 0.1.0'
+    silent: true
+    cmds:
+      - pwsh -NoProfile -NonInteractive -File taskfile/release.ps1 -Version "{{.CLI_ARGS}}"
 
 # ---- maintenance tasks ----
 

@@ -11,5 +11,5 @@ Sample ORDR workspaces consumed by the `ordr` command.
 Regenerate after changing sources or rendering:
 
 ```text
-go run ./cmd/ordr project --workspace examples/basic
+go run . project --workspace examples/basic
 ```
