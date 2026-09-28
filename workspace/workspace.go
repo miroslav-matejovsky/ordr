@@ -1,11 +1,13 @@
 // Package workspace isolates the filesystem from the ORDR domain.
 //
-// A workspace is a directory holding an ordr.cue configuration file that
+// A workspace is a directory holding an ordr.yaml configuration file that
 // names the knowledge, graph and projections folders explicitly:
 //
-//	knowledge:   "knowledge"
-//	graph:       "graph"
-//	projections: "projections"
+//	knowledge: knowledge
+//	graph: graph
+//	projections: projections
+//
+// All three keys are required and non-empty. Unknown keys are rejected.
 //
 // The package discovers a workspace, reads its source files, hands their
 // content to the knowledge and graph packages, and writes generated
@@ -17,16 +19,16 @@
 package workspace
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
 
-	"cuelang.org/go/cue"
-	"cuelang.org/go/cue/cuecontext"
-	cueerrors "cuelang.org/go/cue/errors"
+	"go.yaml.in/yaml/v3"
 
 	"github.com/miroslav-matejovsky/ordr/graph"
 	"github.com/miroslav-matejovsky/ordr/graph/cuegraph"
@@ -34,15 +36,14 @@ import (
 )
 
 // ConfigFile is the name of the file that marks a workspace root.
-const ConfigFile = "ordr.cue"
+const ConfigFile = "ordr.yaml"
 
-const configSchema = `
-#Config: {
-	knowledge:   string
-	graph:       string
-	projections: string
+// config mirrors ConfigFile. Every field is required.
+type config struct {
+	Knowledge   string `yaml:"knowledge"`
+	Graph       string `yaml:"graph"`
+	Projections string `yaml:"projections"`
 }
-`
 
 // Workspace is a discovered ORDR workspace. Folder fields are workspace
 // relative, slash separated and guaranteed to stay inside the root.
@@ -81,18 +82,10 @@ func open(root string) (Workspace, error) {
 	if err != nil {
 		return Workspace{}, err
 	}
-	ctx := cuecontext.New()
-	v := ctx.CompileString(configSchema).LookupPath(cue.ParsePath("#Config")).
-		Unify(ctx.CompileBytes(data, cue.Filename(ConfigFile)))
-	if err := v.Validate(cue.Concrete(true)); err != nil {
-		return Workspace{}, fmt.Errorf("%s", cueerrors.Details(err, nil))
-	}
-	var cfg struct {
-		Knowledge   string `json:"knowledge"`
-		Graph       string `json:"graph"`
-		Projections string `json:"projections"`
-	}
-	if err := v.Decode(&cfg); err != nil {
+	var cfg config
+	dec := yaml.NewDecoder(bytes.NewReader(data))
+	dec.KnownFields(true)
+	if err := dec.Decode(&cfg); err != nil && !errors.Is(err, io.EOF) {
 		return Workspace{}, fmt.Errorf("%s: %w", ConfigFile, err)
 	}
 	w := Workspace{root: root, knowledge: cfg.Knowledge, graph: cfg.Graph, projections: cfg.Projections}
@@ -105,9 +98,14 @@ func open(root string) (Workspace, error) {
 		{"projections", w.projections, false},
 	}
 	for _, f := range folders {
+		if f.dir == "" {
+			return Workspace{}, fmt.Errorf("%s: %s: missing", ConfigFile, f.key)
+		}
 		if !filepath.IsLocal(f.dir) {
 			return Workspace{}, fmt.Errorf("%s: %s: %q must be a relative path inside the workspace", ConfigFile, f.key, f.dir)
 		}
+	}
+	for _, f := range folders {
 		if !f.mustExist {
 			continue
 		}

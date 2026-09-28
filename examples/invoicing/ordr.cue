@@ -1,4 +1,0 @@
-// ORDR workspace configuration. All folders are relative to this file.
-knowledge:   "knowledge"   // opportunity records (*.md), the source of truth
-graph:       "graph"       // comparisons and relations (*.cue)
-projections: "projections" // generated views, safe to delete and regenerate

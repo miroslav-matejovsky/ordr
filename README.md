@@ -5,7 +5,7 @@
 ORDR is a text-first tool for exploring opportunities, reducing uncertainty, and preparing decisions.
 
 You write opportunities as Markdown and compare them pairwise in CUE files. ORDR validates
-both and generates Markdown views: relative orderings, relationships and decision readiness.
+both and generates Markdown views: the next opportunity to focus on, relative orderings, relationships and decision readiness.
 It never scores anything: `alpha > beta` instead of `alpha = 87`.
 
 Concepts and principles: [`docs/README.md`](docs/README.md). Architecture: [`dev/architecture.md`](dev/architecture.md).
@@ -32,8 +32,8 @@ Run it from a clone of this repository. It writes the projections into `examples
 ordr project [PROJECTION] [--workspace PATH] [--stdout]
 ```
 
-- `PROJECTION`: `all` (default), `value`, `uncertainty`, `complexity`, `relationships`, `readiness`.
-- `--workspace`: a folder inside the workspace. `ordr.cue` is searched upward from it. Default `.`.
+- `PROJECTION`: `all` (default), `focus`, `value`, `uncertainty`, `complexity`, `relationships`, `readiness`.
+- `--workspace`: a folder inside the workspace. `ordr.yaml` is searched upward from it. Default `.`.
 - `--stdout`: print projections instead of writing them.
 - Exit codes: `0` success, `1` invalid sources or I/O failure, `2` invalid command line.
 
@@ -41,18 +41,18 @@ ordr project [PROJECTION] [--workspace PATH] [--stdout]
 
 ```text
 my-workspace/
-├── ordr.cue        # folder configuration, marks the root
+├── ordr.yaml       # folder configuration, marks the root
 ├── knowledge/*.md  # opportunity records, source of truth
 ├── graph/*.cue     # comparisons and relations, source of truth
 └── projections/    # generated, safe to delete
 ```
 
-`ordr.cue` names every folder explicitly. There are no defaults.
+`ordr.yaml` names every folder explicitly. There are no defaults.
 
-```cue
-knowledge:   "knowledge"
-graph:       "graph"
-projections: "projections"
+```yaml
+knowledge: knowledge
+graph: graph
+projections: projections
 ```
 
 ## Knowledge format
@@ -121,6 +121,7 @@ cycles (`a > b > c > a`), records with more than one parent and containment cycl
 
 | File | Content |
 | --- | --- |
+| `focus.md` | The single opportunity most worth working on now, the path to it from the most valuable opportunity, and its relations and stated comparisons, as ASCII trees. |
 | `value.md` | Strategic value ordering. |
 | `uncertainty.md` | Uncertainty ordering. |
 | `complexity.md` | Complexity ordering. |

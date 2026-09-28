@@ -20,6 +20,7 @@ type Kind string
 
 // Available projections.
 const (
+	Focus               Kind = "focus"
 	ValueOrdering       Kind = "value"
 	UncertaintyOrdering Kind = "uncertainty"
 	ComplexityOrdering  Kind = "complexity"
@@ -32,7 +33,7 @@ const All = "all"
 
 // Kinds returns all projections in a fixed order.
 func Kinds() []Kind {
-	return []Kind{ValueOrdering, UncertaintyOrdering, ComplexityOrdering, Relationships, Readiness}
+	return []Kind{Focus, ValueOrdering, UncertaintyOrdering, ComplexityOrdering, Relationships, Readiness}
 }
 
 // Select resolves a projection name, or All, into kinds.
@@ -56,6 +57,8 @@ type Document struct {
 func Render(k Kind, r knowledge.Register, g graph.Graph) Document {
 	var b strings.Builder
 	switch k {
+	case Focus:
+		renderFocus(&b, r, g)
 	case ValueOrdering:
 		renderOrdering(&b, r, g, orderings[graph.Value])
 	case UncertaintyOrdering:
