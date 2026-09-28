@@ -143,6 +143,45 @@ func TestNewReportsIssues(t *testing.T) {
 				Message: `f:2: "beta relates alpha" already stated at f:1`}},
 		},
 		{
+			name: "contains forms a forest",
+			relations: []graph.Relation{
+				rel(graph.Contains, "alpha", "beta", "f:1"),
+				rel(graph.Contains, "alpha", "gamma", "f:2"),
+				rel(graph.Contains, "beta", "delta", "f:3"),
+			},
+		},
+		{
+			name: "second parent",
+			relations: []graph.Relation{
+				rel(graph.Contains, "alpha", "gamma", "f:1"),
+				rel(graph.Contains, "beta", "gamma", "f:2"),
+			},
+			want: []graph.Issue{{Kind: graph.MultipleParents,
+				Message: `f:2: "beta contains gamma" gives "gamma" a second parent; "alpha contains gamma" already states its parent at f:1`}},
+		},
+		{
+			name: "containment cycle",
+			relations: []graph.Relation{
+				rel(graph.Contains, "alpha", "beta", "f:1"),
+				rel(graph.Contains, "beta", "gamma", "f:2"),
+				rel(graph.Contains, "gamma", "alpha", "f:3"),
+				rel(graph.Contains, "gamma", "delta", "f:4"),
+			},
+			want: []graph.Issue{{Kind: graph.ContainmentCycle,
+				Message: "contains relations form a cycle among alpha, beta, gamma; " +
+					"remove one of: gamma contains alpha (f:3), alpha contains beta (f:1), beta contains gamma (f:2)"}},
+		},
+		{
+			name: "two record containment cycle",
+			relations: []graph.Relation{
+				rel(graph.Contains, "alpha", "beta", "f:1"),
+				rel(graph.Contains, "beta", "alpha", "f:2"),
+			},
+			want: []graph.Issue{{Kind: graph.ContainmentCycle,
+				Message: "contains relations form a cycle among alpha, beta; " +
+					"remove one of: beta contains alpha (f:2), alpha contains beta (f:1)"}},
+		},
+		{
 			name: "contradictory comparisons",
 			comparisons: []graph.Comparison{
 				cmp(graph.Uncertainty, "beta", "alpha", "f:1"),

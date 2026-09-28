@@ -42,24 +42,29 @@ func readNormalized(t *testing.T, path string) string {
 	return strings.ReplaceAll(string(data), "\r\n", "\n")
 }
 
-// TestProjectBasicExample generates all projections for examples/basic and
-// compares them with the committed projections of the example.
-func TestProjectBasicExample(t *testing.T) {
-	ws := copyWorkspace(t, basic)
-	var stdout, stderr bytes.Buffer
+// TestProjectValidExamples generates all projections for each valid example
+// workspace and compares them with the committed projections of the example.
+func TestProjectValidExamples(t *testing.T) {
+	for _, example := range []string{basic, "../examples/invoicing"} {
+		t.Run(filepath.Base(example), func(t *testing.T) {
+			ws := copyWorkspace(t, example)
+			var stdout, stderr bytes.Buffer
 
-	code := cli.Run([]string{"project", "--workspace", ws}, &stdout, &stderr)
+			code := cli.Run([]string{"project", "--workspace", ws}, &stdout, &stderr)
 
-	require.Equal(t, cli.ExitOK, code, stderr.String())
-	require.Equal(t, "wrote projections/value.md\n"+
-		"wrote projections/uncertainty.md\n"+
-		"wrote projections/complexity.md\n"+
-		"wrote projections/relationships.md\n"+
-		"wrote projections/readiness.md\n", stdout.String())
-	for _, name := range []string{"value.md", "uncertainty.md", "complexity.md", "relationships.md", "readiness.md"} {
-		want := readNormalized(t, filepath.Join(basic, "projections", name))
-		got := readNormalized(t, filepath.Join(ws, "projections", name))
-		require.Equal(t, want, got, "%s differs from examples/basic; regenerate with: go run . project --workspace examples/basic", name)
+			require.Equal(t, cli.ExitOK, code, stderr.String())
+			require.Equal(t, "wrote projections/value.md\n"+
+				"wrote projections/uncertainty.md\n"+
+				"wrote projections/complexity.md\n"+
+				"wrote projections/relationships.md\n"+
+				"wrote projections/readiness.md\n", stdout.String())
+			for _, name := range []string{"value.md", "uncertainty.md", "complexity.md", "relationships.md", "readiness.md"} {
+				want := readNormalized(t, filepath.Join(example, "projections", name))
+				got := readNormalized(t, filepath.Join(ws, "projections", name))
+				require.Equal(t, want, got, "%s differs from %s; regenerate with: go run . project --workspace %s",
+					name, example, strings.TrimPrefix(example, "../"))
+			}
+		})
 	}
 }
 
@@ -80,7 +85,7 @@ func TestProjectInvalidExample(t *testing.T) {
 
 	require.Equal(t, cli.ExitError, code)
 	require.Empty(t, stdout.String())
-	require.Contains(t, stderr.String(), `[unknown-reference] graph/ordering.cue:6:2: "value alpha > delta" references unknown knowledge id "delta"`)
+	require.Contains(t, stderr.String(), `[unknown-reference] graph/graph.cue:2:35: "value alpha > delta" references unknown knowledge id "delta"`)
 	require.Contains(t, stderr.String(), "[cycle] value comparisons form a cycle among alpha, beta, gamma")
 	require.NoDirExists(t, filepath.Join(ws, "projections"))
 }

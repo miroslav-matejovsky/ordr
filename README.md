@@ -88,26 +88,34 @@ Run a one-season pilot, or drop the idea.
 
 ## Graph notation (CUE)
 
-Every `*.cue` file in the graph folder is read on its own. All fields are optional; unknown fields are errors.
+Every `*.cue` file in the graph folder is read on its own. Each top-level field is a record id and holds
+the statements made from that record's point of view. All fields are optional; unknown fields are errors.
+Ids with hyphens must be quoted, for example `"tool-library": {...}`.
 
 ```cue
-comparisons: {
-	value:       [{more: "alpha", than: "beta"}]  // alpha has more strategic value than beta
-	uncertainty: [{more: "gamma", than: "beta"}]  // gamma is more uncertain than beta
-	complexity:  [{more: "gamma", than: "alpha"}] // gamma is more complex than alpha
-}
-relations: {
-	supports:    [{from: "beta", to: "alpha"}]
-	blocks:      []
-	enables:     [{from: "alpha", to: "gamma"}]    // gamma depends on alpha
+alpha: {
+	supports:    ["beta"]  // alpha supports beta
+	blocks:      ["gamma"] // alpha blocks gamma
+	enables:     ["delta"] // delta depends on alpha
 	invalidates: []
-	relates:     [{from: "beta", to: "gamma"}]     // symmetric
+	contains:    ["kappa"] // kappa is part of alpha; one parent per record
+	relates:     ["beta"]  // symmetric
+
+	moreValuableThan:  ["beta"]  // alpha has more strategic value than beta
+	lessValuableThan:  []
+	moreUncertainThan: []
+	lessUncertainThan: ["gamma"] // gamma is more uncertain than alpha
+	moreComplexThan:   []
+	lessComplexThan:   ["gamma"] // gamma is more complex than alpha
 }
 ```
 
+`alpha: lessComplexThan: ["gamma"]` and `gamma: moreComplexThan: ["alpha"]` are the same statement.
+Stating both is reported as a duplicate.
+
 ORDR refuses invalid input and lists every issue with file, line and ids:
-unknown references, self-references, duplicates, contradictory comparisons (`a > b` and `b > a`)
-and cycles (`a > b > c > a`).
+unknown references, self-references, duplicates, contradictory comparisons (`a > b` and `b > a`),
+cycles (`a > b > c > a`), records with more than one parent and containment cycles.
 
 ## Projections
 
@@ -117,7 +125,7 @@ and cycles (`a > b > c > a`).
 | `uncertainty.md` | Uncertainty ordering. |
 | `complexity.md` | Complexity ordering. |
 | `relationships.md` | Relations grouped by kind. |
-| `readiness.md` | Opportunities by workflow state with decision, hypothesis, evidence, open uncertainties and incoming relations. |
+| `readiness.md` | Opportunities by workflow state with decision, hypothesis, evidence, open uncertainties, incoming relations, children and related items. |
 
 Orderings are layered. Level 1 ranks highest. Items on one level are not ordered against each other.
 From `alpha > beta` and `alpha > gamma` ORDR derives `1. alpha`, `2. beta; gamma` and never invents `beta > gamma`.

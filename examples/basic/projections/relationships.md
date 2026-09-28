@@ -4,7 +4,7 @@
 
 ## supports
 
-- beta (Monthly repair meetup) supports alpha (Neighbourhood tool library) (`graph/relationships.cue:4:13`)
+- beta (Monthly repair meetup) supports alpha (Neighbourhood tool library) (`graph/graph.cue:15:13`)
 
 ## blocks
 
@@ -12,12 +12,16 @@ None.
 
 ## enables
 
-- alpha (Neighbourhood tool library) enables gamma (Shared inventory service) (`graph/relationships.cue:7:12`)
+- alpha (Neighbourhood tool library) enables gamma (Shared inventory service) (`graph/graph.cue:7:12`)
 
 ## invalidates
 
 None.
 
+## contains
+
+None.
+
 ## relates
 
-- beta (Monthly repair meetup) relates to gamma (Shared inventory service) (`graph/relationships.cue:9:12`)
+- beta (Monthly repair meetup) relates to gamma (Shared inventory service) (`graph/graph.cue:16:12`)

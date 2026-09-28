@@ -36,6 +36,7 @@ Examples:
 - blocks
 - enables
 - invalidates
+- contains (parent-child)
 - relates
 - greater-than (`>`), ranks higher than
 

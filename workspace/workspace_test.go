@@ -92,15 +92,15 @@ func TestLoadCombinesGraphFiles(t *testing.T) {
 		"k/b.md":     rec("b"),
 		"k/c.md":     rec("c"),
 		"k/note.txt": "ignored",
-		"g/1.cue":    `comparisons: value: [{more: "a", than: "b"}]`,
-		"g/2.cue":    `comparisons: value: [{more: "b", than: "c"}]` + "\nrelations: blocks: [{from: \"c\", to: \"a\"}]",
+		"g/1.cue":    `a: moreValuableThan: ["b"]`,
+		"g/2.cue":    `b: moreValuableThan: ["c"]` + "\nc: blocks: [\"a\"]",
 	})
 	ws, err := workspace.Discover(root)
 	require.NoError(t, err)
 	_, g, err := ws.Load()
 	require.NoError(t, err)
 	require.Equal(t, [][]knowledge.ID{{"a"}, {"b"}, {"c"}}, g.Order(graph.Value).Levels)
-	require.Equal(t, []graph.Relation{{Kind: graph.Blocks, From: "c", To: "a", Origin: "g/2.cue:2:21"}}, g.Relations())
+	require.Equal(t, []graph.Relation{{Kind: graph.Blocks, From: "c", To: "a", Origin: "g/2.cue:2:13"}}, g.Relations())
 }
 
 func TestLoadErrors(t *testing.T) {
@@ -111,8 +111,8 @@ func TestLoadErrors(t *testing.T) {
 	}{
 		{"bad record", map[string]string{"k/a.md": "no front matter"}, "k/a.md: front matter"},
 		{"duplicate id", map[string]string{"k/a.md": rec("a"), "k/b.md": rec("a")}, `duplicate id "a" in k/a.md and k/b.md`},
-		{"bad cue", map[string]string{"k/a.md": rec("a"), "g/x.cue": "comparisons: {"}, "g/x.cue"},
-		{"unknown reference", map[string]string{"k/a.md": rec("a"), "g/x.cue": `comparisons: value: [{more: "a", than: "z"}]`},
+		{"bad cue", map[string]string{"k/a.md": rec("a"), "g/x.cue": "a: {"}, "g/x.cue"},
+		{"unknown reference", map[string]string{"k/a.md": rec("a"), "g/x.cue": `a: moreValuableThan: ["z"]`},
 			`unknown knowledge id "z"`},
 	}
 	for _, tt := range tests {
@@ -133,7 +133,7 @@ func TestLoadReturnsValidationError(t *testing.T) {
 	root := writeTree(t, map[string]string{
 		"ordr.cue": config,
 		"k/a.md":   rec("a"),
-		"g/x.cue":  `comparisons: value: [{more: "a", than: "a"}]`,
+		"g/x.cue":  `a: moreValuableThan: ["a"]`,
 	})
 	ws, err := workspace.Discover(root)
 	require.NoError(t, err)

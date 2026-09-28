@@ -18,5 +18,5 @@ None.
 
 ## Stated comparisons
 
-- alpha is more complex than beta (`graph/ordering.cue:19:3`)
-- gamma is more complex than alpha (`graph/ordering.cue:18:3`)
+- alpha is more complex than beta (`graph/graph.cue:10:20`)
+- gamma is more complex than alpha (`graph/graph.cue:23:20`)
