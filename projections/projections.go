@@ -122,6 +122,7 @@ var relationPhrases = map[graph.RelationKind]string{
 	graph.Blocks:      "blocks",
 	graph.Enables:     "enables",
 	graph.Invalidates: "invalidates",
+	graph.Contains:    "contains",
 	graph.Relates:     "relates to",
 }
 
@@ -151,6 +152,7 @@ var incoming = []struct {
 	{graph.Invalidates, "Invalidated by"},
 	{graph.Enables, "Depends on"},
 	{graph.Supports, "Supported by"},
+	{graph.Contains, "Part of"},
 }
 
 func renderReadiness(b *strings.Builder, r knowledge.Register, g graph.Graph) {
@@ -199,6 +201,15 @@ func renderReadinessEntry(b *strings.Builder, r knowledge.Register, rels []graph
 		if len(from) > 0 {
 			fmt.Fprintf(b, "- %s: %s\n", in.label, strings.Join(from, "; "))
 		}
+	}
+	var children []string
+	for _, rel := range rels {
+		if rel.Kind == graph.Contains && rel.From == o.ID {
+			children = append(children, label(r, rel.To))
+		}
+	}
+	if len(children) > 0 {
+		fmt.Fprintf(b, "- Contains: %s\n", strings.Join(children, "; "))
 	}
 	var related []string
 	for _, rel := range rels {

@@ -17,5 +17,5 @@ None.
 
 ## Stated comparisons
 
-- alpha has more strategic value than beta (`graph/ordering.cue:6:3`)
-- alpha has more strategic value than gamma (`graph/ordering.cue:7:3`)
+- alpha has more strategic value than beta (`graph/graph.cue:9:21`)
+- alpha has more strategic value than gamma (`graph/graph.cue:9:29`)

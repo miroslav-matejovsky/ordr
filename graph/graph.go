@@ -25,7 +25,7 @@ func (d Dimension) valid() bool {
 // Comparison states that More ranks above Less on Dimension.
 //
 // Origin locates the statement in its source, for example
-// "graph/ordering.cue:4:3". It is used only for error messages and traceability.
+// "graph/graph.cue:4:3". It is used only for error messages and traceability.
 type Comparison struct {
 	Dimension Dimension
 	More      knowledge.ID
@@ -47,12 +47,13 @@ const (
 	Blocks      RelationKind = "blocks"      // From prevents a decision on To
 	Enables     RelationKind = "enables"     // To depends on From
 	Invalidates RelationKind = "invalidates" // From contradicts the hypothesis of To
+	Contains    RelationKind = "contains"    // From is the parent of To; To is part of From
 	Relates     RelationKind = "relates"     // untyped, symmetric association
 )
 
 // RelationKinds returns all relation kinds in a fixed order.
 func RelationKinds() []RelationKind {
-	return []RelationKind{Supports, Blocks, Enables, Invalidates, Relates}
+	return []RelationKind{Supports, Blocks, Enables, Invalidates, Contains, Relates}
 }
 
 // Relation links From to To with Kind. Origin is as in Comparison.
@@ -70,7 +71,9 @@ func (r Relation) String() string {
 // Graph is a validated set of comparisons and relations over known records.
 //
 // Invariants: every referenced id is known, no statement references itself,
-// no statement is duplicated, and comparisons form no cycle per dimension.
+// no statement is duplicated, comparisons form no cycle per dimension, and
+// contains relations form a forest: every record has at most one parent and
+// no record contains itself directly or indirectly.
 type Graph struct {
 	known       []knowledge.ID
 	comparisons []Comparison

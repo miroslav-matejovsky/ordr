@@ -5,20 +5,28 @@
 // [graph.Relation] values; validation of references and ordering happens in
 // [graph.New].
 //
-// Notation (every field is optional, unknown fields are errors):
+// Notation: every top-level field is a knowledge id and holds the statements
+// made from that record's point of view. Every statement field is optional,
+// unknown fields are errors. Ids containing hyphens must be quoted.
 //
-//	comparisons: {
-//		value:       [{more: "alpha", than: "beta"}]
-//		uncertainty: [{more: "gamma", than: "beta"}]
-//		complexity:  [{more: "gamma", than: "alpha"}]
-//	}
-//	relations: {
-//		supports:    [{from: "beta", to: "alpha"}]
-//		blocks:      [...]
-//		enables:     [...]
+//	alpha: {
+//		supports:    ["beta"]  // alpha supports beta
+//		blocks:      ["gamma"] // alpha blocks gamma
+//		enables:     ["delta"] // delta depends on alpha
 //		invalidates: [...]
-//		relates:     [...]
+//		contains:    [...]     // children of alpha
+//		relates:     [...]     // symmetric
+//
+//		moreValuableThan:  ["beta"] // alpha > beta on value
+//		lessValuableThan:  [...]    // ... > alpha on value
+//		moreUncertainThan: [...]
+//		lessUncertainThan: [...]
+//		moreComplexThan:   [...]
+//		lessComplexThan:   [...]
 //	}
+//
+// "alpha: lessComplexThan: [beta]" and "beta: moreComplexThan: [alpha]" are
+// the same statement; stating both is reported as a duplicate by graph.New.
 //
 // Each file is read on its own; statements from several files are simply
 // concatenated by the caller. Lists do not unify across files.
@@ -36,28 +44,45 @@ import (
 )
 
 const schema = `
-#Comparison: {more: string, than: string}
-#Relation: {from: string, to: string}
-#Graph: {
-	comparisons?: {
-		value?:       [...#Comparison]
-		uncertainty?: [...#Comparison]
-		complexity?:  [...#Comparison]
-	}
-	relations?: {
-		supports?:    [...#Relation]
-		blocks?:      [...#Relation]
-		enables?:     [...#Relation]
-		invalidates?: [...#Relation]
-		relates?:     [...#Relation]
-	}
-}
+#IDs: [...string]
+#Record: close({
+	supports?:    #IDs
+	blocks?:      #IDs
+	enables?:     #IDs
+	invalidates?: #IDs
+	contains?:    #IDs
+	relates?:     #IDs
+
+	moreValuableThan?:  #IDs
+	lessValuableThan?:  #IDs
+	moreUncertainThan?: #IDs
+	lessUncertainThan?: #IDs
+	moreComplexThan?:   #IDs
+	lessComplexThan?:   #IDs
+})
+#Graph: [string]: #Record
 `
 
-var dimensions = []graph.Dimension{graph.Value, graph.Uncertainty, graph.Complexity}
+// comparisonField maps a comparison field to its dimension. more tells
+// whether the record the field belongs to ranks above the listed ids.
+type comparisonField struct {
+	name string
+	dim  graph.Dimension
+	more bool
+}
+
+var comparisonFields = []comparisonField{
+	{"moreValuableThan", graph.Value, true},
+	{"lessValuableThan", graph.Value, false},
+	{"moreUncertainThan", graph.Uncertainty, true},
+	{"lessUncertainThan", graph.Uncertainty, false},
+	{"moreComplexThan", graph.Complexity, true},
+	{"lessComplexThan", graph.Complexity, false},
+}
 
 // Parse reads one CUE graph file. filename is used for positions in errors
-// and in the Origin of each statement.
+// and in the Origin of each statement. Statements are returned in source
+// order of records, then in the field order of the notation.
 func Parse(filename string, data []byte) ([]graph.Comparison, []graph.Relation, error) {
 	ctx := cuecontext.New()
 	def := ctx.CompileString(schema, cue.Filename("ordr-graph-schema.cue")).LookupPath(cue.ParsePath("#Graph"))
@@ -70,69 +95,50 @@ func Parse(filename string, data []byte) ([]graph.Comparison, []graph.Relation, 
 	}
 	// Validate against the schema, but read statements from doc: values of the
 	// unified result carry schema positions instead of source positions.
-	v := def.Unify(doc)
-	if err := v.Validate(cue.Concrete(true)); err != nil {
+	if err := def.Unify(doc).Validate(cue.Concrete(true)); err != nil {
 		return nil, nil, cueError(err)
 	}
 
-	var comparisons []graph.Comparison
-	for _, d := range dimensions {
-		err := eachElement(doc, "comparisons."+string(d), func(pos string, e cue.Value) error {
-			var raw struct {
-				More string `json:"more"`
-				Than string `json:"than"`
-			}
-			if err := e.Decode(&raw); err != nil {
-				return err
-			}
-			more, err := knowledge.ParseID(raw.More)
-			if err != nil {
-				return err
-			}
-			less, err := knowledge.ParseID(raw.Than)
-			if err != nil {
-				return err
-			}
-			comparisons = append(comparisons, graph.Comparison{Dimension: d, More: more, Less: less, Origin: pos})
-			return nil
-		})
-		if err != nil {
-			return nil, nil, err
-		}
+	records, err := doc.Fields()
+	if err != nil {
+		return nil, nil, cueError(err)
 	}
-
+	var comparisons []graph.Comparison
 	var relations []graph.Relation
-	for _, k := range graph.RelationKinds() {
-		err := eachElement(doc, "relations."+string(k), func(pos string, e cue.Value) error {
-			var raw struct {
-				From string `json:"from"`
-				To   string `json:"to"`
-			}
-			if err := e.Decode(&raw); err != nil {
-				return err
-			}
-			from, err := knowledge.ParseID(raw.From)
-			if err != nil {
-				return err
-			}
-			to, err := knowledge.ParseID(raw.To)
-			if err != nil {
-				return err
-			}
-			relations = append(relations, graph.Relation{Kind: k, From: from, To: to, Origin: pos})
-			return nil
-		})
+	for records.Next() {
+		record := records.Value()
+		self, err := knowledge.ParseID(records.Selector().Unquoted())
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("%s: %w", record.Pos(), err)
+		}
+		for _, k := range graph.RelationKinds() {
+			err := eachID(record, string(k), func(pos string, other knowledge.ID) {
+				relations = append(relations, graph.Relation{Kind: k, From: self, To: other, Origin: pos})
+			})
+			if err != nil {
+				return nil, nil, err
+			}
+		}
+		for _, f := range comparisonFields {
+			err := eachID(record, f.name, func(pos string, other knowledge.ID) {
+				c := graph.Comparison{Dimension: f.dim, More: self, Less: other, Origin: pos}
+				if !f.more {
+					c.More, c.Less = other, self
+				}
+				comparisons = append(comparisons, c)
+			})
+			if err != nil {
+				return nil, nil, err
+			}
 		}
 	}
 	return comparisons, relations, nil
 }
 
-// eachElement calls fn for every element of the list at path, if present.
-// Errors from fn are prefixed with the element position.
-func eachElement(v cue.Value, path string, fn func(pos string, e cue.Value) error) error {
-	list := v.LookupPath(cue.ParsePath(path))
+// eachID calls fn for every id in the list field of record, if present.
+// Errors are prefixed with the element position.
+func eachID(record cue.Value, field string, fn func(pos string, id knowledge.ID)) error {
+	list := record.LookupPath(cue.MakePath(cue.Str(field)))
 	if !list.Exists() {
 		return nil
 	}
@@ -142,9 +148,15 @@ func eachElement(v cue.Value, path string, fn func(pos string, e cue.Value) erro
 	}
 	for it.Next() {
 		pos := it.Value().Pos().String()
-		if err := fn(pos, it.Value()); err != nil {
+		s, err := it.Value().String()
+		if err != nil {
 			return fmt.Errorf("%s: %w", pos, err)
 		}
+		id, err := knowledge.ParseID(s)
+		if err != nil {
+			return fmt.Errorf("%s: %w", pos, err)
+		}
+		fn(pos, id)
 	}
 	return nil
 }

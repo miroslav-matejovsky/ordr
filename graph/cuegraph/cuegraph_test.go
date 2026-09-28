@@ -10,29 +10,28 @@ import (
 )
 
 func TestParse(t *testing.T) {
-	src := `// ordering
-comparisons: {
-	value: [
-		{more: "alpha", than: "beta"},
-		{more: "alpha", than: "gamma"},
-	]
-	complexity: [{more: "gamma", than: "alpha"}]
+	src := `// graph
+alpha: {
+	moreValuableThan: ["beta", "gamma"]
+	lessComplexThan: ["gamma"]
+	enables: ["gamma"]
+	contains: ["beta"]
 }
-relations: {
-	supports: [{from: "beta", to: "alpha"}]
-	enables: [{from: "alpha", to: "gamma"}]
-}
+beta: supports: ["alpha"]
+"tool-library": lessUncertainThan: ["beta"]
 `
 	comparisons, relations, err := cuegraph.Parse("graph/g.cue", []byte(src))
 	require.NoError(t, err)
 	require.Equal(t, []graph.Comparison{
-		{Dimension: graph.Value, More: "alpha", Less: "beta", Origin: "graph/g.cue:4:3"},
-		{Dimension: graph.Value, More: "alpha", Less: "gamma", Origin: "graph/g.cue:5:3"},
-		{Dimension: graph.Complexity, More: "gamma", Less: "alpha", Origin: "graph/g.cue:7:15"},
+		{Dimension: graph.Value, More: "alpha", Less: "beta", Origin: "graph/g.cue:3:21"},
+		{Dimension: graph.Value, More: "alpha", Less: "gamma", Origin: "graph/g.cue:3:29"},
+		{Dimension: graph.Complexity, More: "gamma", Less: "alpha", Origin: "graph/g.cue:4:20"},
+		{Dimension: graph.Uncertainty, More: "beta", Less: "tool-library", Origin: "graph/g.cue:9:37"},
 	}, comparisons)
 	require.Equal(t, []graph.Relation{
-		{Kind: graph.Supports, From: "beta", To: "alpha", Origin: "graph/g.cue:10:13"},
-		{Kind: graph.Enables, From: "alpha", To: "gamma", Origin: "graph/g.cue:11:12"},
+		{Kind: graph.Enables, From: "alpha", To: "gamma", Origin: "graph/g.cue:5:12"},
+		{Kind: graph.Contains, From: "alpha", To: "beta", Origin: "graph/g.cue:6:13"},
+		{Kind: graph.Supports, From: "beta", To: "alpha", Origin: "graph/g.cue:8:18"},
 	}, relations)
 }
 
@@ -42,13 +41,13 @@ func TestParseErrors(t *testing.T) {
 		src  string
 		want string
 	}{
-		{"syntax", `comparisons: {`, "graph/g.cue"},
-		{"unknown dimension", `comparisons: urgency: [{more: "a", than: "b"}]`, "urgency"},
-		{"unknown relation", `relations: depends: [{from: "a", to: "b"}]`, "depends"},
-		{"unknown field", `comparisons: value: [{more: "a", than: "b", score: 3}]`, "score"},
-		{"missing field", `comparisons: value: [{more: "a"}]`, "than"},
-		{"numeric id", `comparisons: value: [{more: 1, than: "b"}]`, "more"},
-		{"invalid id", `comparisons: value: [{more: "Alpha", than: "b"}]`, `invalid id "Alpha"`},
+		{"syntax", `alpha: {`, "graph/g.cue"},
+		{"unknown statement", `alpha: dependsOn: ["b"]`, "dependsOn"},
+		{"record is not a struct", `alpha: ["b"]`, "alpha"},
+		{"not a list", `alpha: supports: "b"`, "supports"},
+		{"numeric id", `alpha: supports: [1]`, "supports"},
+		{"invalid target id", `alpha: supports: ["Beta"]`, `invalid id "Beta"`},
+		{"invalid record id", `Alpha: supports: ["b"]`, `invalid id "Alpha"`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

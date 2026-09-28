@@ -30,6 +30,7 @@ func fixture(t *testing.T) (knowledge.Register, graph.Graph) {
 		[]graph.Relation{
 			{Kind: graph.Blocks, From: "gamma", To: "alpha", Origin: "r.cue:1:1"},
 			{Kind: graph.Relates, From: "gamma", To: "beta", Origin: "r.cue:2:1"},
+			{Kind: graph.Contains, From: "alpha", To: "gamma", Origin: "r.cue:3:1"},
 		})
 	require.NoError(t, err)
 	return r, g
@@ -149,6 +150,7 @@ None.
   - E1
 - Open uncertainties: None recorded.
 - Blocked by: gamma (Gamma)
+- Contains: gamma (Gamma)
 
 ## evidence
 
@@ -167,6 +169,7 @@ None.
 - Evidence: None recorded.
 - Open uncertainties:
   - U3
+- Part of: alpha (Alpha)
 - Related to: beta (Beta)
 `, doc.Content)
 }

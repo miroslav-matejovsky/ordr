@@ -14,6 +14,7 @@ Examples:
 - A supports B
 - A blocks B
 - A enables B
+- A contains B (B is part of A)
 - A > B
 
 Questions answered:
@@ -26,8 +27,10 @@ Questions answered:
 Implementation (proof of concept):
 
 - `graph.New` validates comparisons and relations: unknown references, self-references,
-  duplicates, contradictory direct comparisons and ordering cycles. All issues are reported together.
+  duplicates, contradictory direct comparisons, ordering cycles, records with more than one parent
+  and containment cycles. All issues are reported together.
 - `Graph.Order` derives a layered partial order per dimension (value, uncertainty, complexity).
   Items without a stated or implied comparison are never ordered against each other.
-- Relation kinds: supports, blocks, enables, invalidates, relates.
+- Relation kinds: supports, blocks, enables, invalidates, contains, relates.
+- `contains` forms a forest: each record has at most one parent.
 - `graph/cuegraph` reads the CUE notation. The domain model does not depend on CUE.

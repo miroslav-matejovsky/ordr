@@ -18,6 +18,8 @@ const (
 	DuplicateStatement      IssueKind = "duplicate"
 	ContradictoryComparison IssueKind = "contradiction"
 	OrderingCycle           IssueKind = "cycle"
+	MultipleParents         IssueKind = "multiple-parents"
+	ContainmentCycle        IssueKind = "containment-cycle"
 	InvalidStatement        IssueKind = "invalid"
 )
 
@@ -107,6 +109,7 @@ func validate(known []knowledge.ID, comparisons []Comparison, relations []Relati
 	}
 
 	seen := map[Relation]Relation{}
+	parents := map[knowledge.ID]Relation{}
 	for _, r := range relations {
 		if !slices.Contains(RelationKinds(), r.Kind) {
 			add(InvalidStatement, "%s: unknown relation kind %q", r.Origin, r.Kind)
@@ -124,6 +127,56 @@ func validate(known []knowledge.ID, comparisons []Comparison, relations []Relati
 			continue
 		}
 		seen[k] = r
+		if r.Kind == Contains {
+			if prev, has := parents[r.To]; has {
+				add(MultipleParents, "%s: %q gives %q a second parent; %q already states its parent at %s",
+					r.Origin, r.String(), r.To, prev.String(), prev.Origin)
+				continue
+			}
+			parents[r.To] = r
+		}
+	}
+	issues = append(issues, findContainmentCycles(parents)...)
+	return issues
+}
+
+// findContainmentCycles reports every cycle among contains relations, given
+// the single parent relation of each child. With one parent per child every
+// strongly connected component with more than one member is exactly a cycle.
+func findContainmentCycles(parents map[knowledge.ID]Relation) []Issue {
+	succ := map[knowledge.ID][]knowledge.ID{}
+	var nodes []knowledge.ID
+	addNode := func(id knowledge.ID) {
+		if _, ok := succ[id]; !ok {
+			succ[id] = nil
+			nodes = append(nodes, id)
+		}
+	}
+	for child, r := range parents {
+		addNode(r.From)
+		addNode(child)
+		succ[r.From] = append(succ[r.From], child)
+	}
+	slices.Sort(nodes)
+	for id := range succ {
+		slices.Sort(succ[id])
+	}
+
+	var issues []Issue
+	for _, scc := range stronglyConnected(nodes, succ) {
+		if len(scc) < 2 {
+			continue
+		}
+		var inside []string
+		for _, child := range scc {
+			r := parents[child]
+			inside = append(inside, fmt.Sprintf("%s (%s)", r.String(), r.Origin))
+		}
+		issues = append(issues, Issue{
+			Kind: ContainmentCycle,
+			Message: fmt.Sprintf("contains relations form a cycle among %s; remove one of: %s",
+				joinIDs(scc), strings.Join(inside, ", ")),
+		})
 	}
 	return issues
 }

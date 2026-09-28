@@ -18,5 +18,5 @@ None.
 
 ## Stated comparisons
 
-- beta is more uncertain than alpha (`graph/ordering.cue:13:3`)
-- gamma is more uncertain than beta (`graph/ordering.cue:12:3`)
+- beta is more uncertain than alpha (`graph/graph.cue:18:22`)
+- gamma is more uncertain than beta (`graph/graph.cue:22:22`)
