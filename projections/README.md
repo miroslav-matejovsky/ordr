@@ -24,6 +24,9 @@ Questions answered:
 
 Implementation (proof of concept):
 
+- `focus`: the single opportunity to work on now. Starts at the top of the value ordering
+  (ties: most advanced state, then id) and follows `blocks` and `enables` to the highest ranked
+  constraint until none is left. Shows the path and the relationships of the result as ASCII trees.
 - `value`, `uncertainty`, `complexity`: layered ordering, items never compared, stated comparisons.
 - `relationships`: all relations grouped by kind.
 - `readiness`: opportunities grouped by workflow state with decision, hypothesis, evidence,

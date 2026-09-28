@@ -53,12 +53,13 @@ func TestProjectValidExamples(t *testing.T) {
 			code := cli.Run([]string{"project", "--workspace", ws}, &stdout, &stderr)
 
 			require.Equal(t, cli.ExitOK, code, stderr.String())
-			require.Equal(t, "wrote projections/value.md\n"+
+			require.Equal(t, "wrote projections/focus.md\n"+
+				"wrote projections/value.md\n"+
 				"wrote projections/uncertainty.md\n"+
 				"wrote projections/complexity.md\n"+
 				"wrote projections/relationships.md\n"+
 				"wrote projections/readiness.md\n", stdout.String())
-			for _, name := range []string{"value.md", "uncertainty.md", "complexity.md", "relationships.md", "readiness.md"} {
+			for _, name := range []string{"focus.md", "value.md", "uncertainty.md", "complexity.md", "relationships.md", "readiness.md"} {
 				want := readNormalized(t, filepath.Join(example, "projections", name))
 				got := readNormalized(t, filepath.Join(ws, "projections", name))
 				require.Equal(t, want, got, "%s differs from %s; regenerate with: go run . project --workspace %s",
