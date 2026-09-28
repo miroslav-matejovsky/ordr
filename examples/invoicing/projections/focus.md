@@ -26,12 +26,20 @@ payment-reminders (Automated payment reminders) [decision-ready]
 payment-reminders (Automated payment reminders) [decision-ready]
 ```
 
-## Relationships
+## Relationships and comparisons
 
 ```text
 payment-reminders (Automated payment reminders) [decision-ready]
-└── supports
-    └── payments (Online invoice payments) [options]
+├── supports
+│   └── payments (Online invoice payments) [options]
+├── more valuable than
+│   └── accountant-portal (Accountant access portal) [framing]
+├── less uncertain than
+│   ├── accountant-portal (Accountant access portal) [framing]
+│   └── receipt-capture (Expense receipt capture) [investigation]
+└── less complex than
+    ├── card-payments (Card payments via payment provider) [evidence]
+    └── multi-currency (Multi-currency invoices) [evidence]
 ```
 
 ## Also on the top value level

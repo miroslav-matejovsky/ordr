@@ -74,8 +74,8 @@ func renderFocus(b *strings.Builder, r knowledge.Register, g graph.Graph) {
 	b.WriteString("## Path\n\n")
 	writeTree(b, path[0])
 
-	b.WriteString("## Relationships\n\n")
-	writeTree(b, neighbourhood(r, rels, current))
+	b.WriteString("## Relationships and comparisons\n\n")
+	writeTree(b, neighbourhood(r, g, rels, current))
 
 	b.WriteString("## Also on the top value level\n\n")
 	var peers []string
@@ -117,8 +117,9 @@ func priority(r knowledge.Register, g graph.Graph) (order, top []knowledge.ID) {
 	return order, top
 }
 
-// neighbourhood groups the direct relations of id by how they read from id.
-func neighbourhood(r knowledge.Register, rels []graph.Relation, id knowledge.ID) node {
+// neighbourhood groups the direct relations and stated comparisons of id by
+// how they read from id. Implied comparisons are left out.
+func neighbourhood(r knowledge.Register, g graph.Graph, rels []graph.Relation, id knowledge.ID) node {
 	root := node{text: stateLabel(r, id)}
 	add := func(title string, match func(graph.Relation) (knowledge.ID, bool)) {
 		group := node{text: title}
@@ -153,7 +154,38 @@ func neighbourhood(r knowledge.Register, rels []graph.Relation, id knowledge.ID)
 		}
 		return "", false
 	})
+	for _, t := range focusComparisons {
+		cs := g.Comparisons(t.dim)
+		group := node{text: t.more}
+		for _, c := range cs {
+			if c.More == id {
+				group.children = append(group.children, node{text: stateLabel(r, c.Less)})
+			}
+		}
+		if len(group.children) > 0 {
+			root.children = append(root.children, group)
+		}
+		group = node{text: t.less}
+		for _, c := range cs {
+			if c.Less == id {
+				group.children = append(group.children, node{text: stateLabel(r, c.More)})
+			}
+		}
+		if len(group.children) > 0 {
+			root.children = append(root.children, group)
+		}
+	}
 	return root
+}
+
+// focusComparisons names stated comparisons as read from the focus item.
+var focusComparisons = []struct {
+	dim        graph.Dimension
+	more, less string
+}{
+	{graph.Value, "more valuable than", "less valuable than"},
+	{graph.Uncertainty, "more uncertain than", "less uncertain than"},
+	{graph.Complexity, "more complex than", "less complex than"},
 }
 
 // node is a line of an ASCII tree.

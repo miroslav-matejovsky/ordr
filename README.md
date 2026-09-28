@@ -121,7 +121,7 @@ cycles (`a > b > c > a`), records with more than one parent and containment cycl
 
 | File | Content |
 | --- | --- |
-| `focus.md` | The single opportunity most worth working on now, the path to it from the most valuable opportunity and its relationships, as ASCII trees. |
+| `focus.md` | The single opportunity most worth working on now, the path to it from the most valuable opportunity, and its relations and stated comparisons, as ASCII trees. |
 | `value.md` | Strategic value ordering. |
 | `uncertainty.md` | Uncertainty ordering. |
 | `complexity.md` | Complexity ordering. |

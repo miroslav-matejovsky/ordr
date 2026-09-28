@@ -26,13 +26,22 @@ alpha (Neighbourhood tool library) [options]
 alpha (Neighbourhood tool library) [options]
 ```
 
-## Relationships
+## Relationships and comparisons
 
 ```text
 alpha (Neighbourhood tool library) [options]
 ├── supported by
 │   └── beta (Monthly repair meetup) [investigation]
-└── enables
+├── enables
+│   └── gamma (Shared inventory service) [framing]
+├── more valuable than
+│   ├── beta (Monthly repair meetup) [investigation]
+│   └── gamma (Shared inventory service) [framing]
+├── less uncertain than
+│   └── beta (Monthly repair meetup) [investigation]
+├── more complex than
+│   └── beta (Monthly repair meetup) [investigation]
+└── less complex than
     └── gamma (Shared inventory service) [framing]
 ```
 

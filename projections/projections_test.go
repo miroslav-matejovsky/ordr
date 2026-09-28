@@ -255,7 +255,7 @@ a (A) [options]
     └── depends on: c (C) [framing]
 `+"```"+`
 
-## Relationships
+## Relationships and comparisons
 
 `+"```text"+`
 c (C) [framing]
@@ -265,8 +265,12 @@ c (C) [framing]
 │   └── b (B) [investigation]
 ├── contains
 │   └── e (E) [framing]
-└── related to
-    └── d (D) [framing]
+├── related to
+│   └── d (D) [framing]
+├── more valuable than
+│   └── d (D) [framing]
+└── less valuable than
+    └── a (A) [options]
 `+"```"+`
 
 ## Also on the top value level
