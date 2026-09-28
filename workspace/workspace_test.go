@@ -14,9 +14,9 @@ import (
 	"github.com/miroslav-matejovsky/ordr/workspace"
 )
 
-const config = `knowledge: "k"
-graph: "g"
-projections: "out"
+const config = `knowledge: k
+graph: g
+projections: out
 `
 
 const record = `---
@@ -52,7 +52,7 @@ func rec(id string) string {
 
 func TestDiscoverWalksUp(t *testing.T) {
 	root := writeTree(t, map[string]string{
-		"ordr.cue":     config,
+		"ordr.yaml":    config,
 		"k/a.md":       rec("a"),
 		"g/x.cue":      "",
 		"k/deep/.keep": "",
@@ -70,12 +70,14 @@ func TestDiscoverErrors(t *testing.T) {
 		files map[string]string
 		want  string
 	}{
-		{"no config", map[string]string{"k/a.md": ""}, "no ordr.cue found"},
-		{"missing key", map[string]string{"ordr.cue": `knowledge: "k"` + "\ngraph: \"g\"\n"}, "projections"},
-		{"unknown key", map[string]string{"ordr.cue": config + `extra: "x"`}, "extra"},
-		{"escaping path", map[string]string{"ordr.cue": `knowledge: "../k"` + "\ngraph: \"g\"\nprojections: \"out\"\n"},
+		{"no config", map[string]string{"k/a.md": ""}, "no ordr.yaml found"},
+		{"missing key", map[string]string{"ordr.yaml": "knowledge: k\ngraph: g\n"}, "ordr.yaml: projections: missing"},
+		{"empty value", map[string]string{"ordr.yaml": "knowledge: k\ngraph: \"\"\nprojections: out\n"}, "ordr.yaml: graph: missing"},
+		{"not a mapping", map[string]string{"ordr.yaml": "- k\n"}, "ordr.yaml"},
+		{"unknown key", map[string]string{"ordr.yaml": config + "extra: x\n"}, "extra"},
+		{"escaping path", map[string]string{"ordr.yaml": "knowledge: ../k\ngraph: g\nprojections: out\n"},
 			`knowledge: "../k" must be a relative path`},
-		{"missing folder", map[string]string{"ordr.cue": config, "g/x.cue": ""}, `knowledge: folder "k" not found`},
+		{"missing folder", map[string]string{"ordr.yaml": config, "g/x.cue": ""}, `knowledge: folder "k" not found`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -87,7 +89,7 @@ func TestDiscoverErrors(t *testing.T) {
 
 func TestLoadCombinesGraphFiles(t *testing.T) {
 	root := writeTree(t, map[string]string{
-		"ordr.cue":   config,
+		"ordr.yaml":  config,
 		"k/a.md":     rec("a"),
 		"k/b.md":     rec("b"),
 		"k/c.md":     rec("c"),
@@ -117,7 +119,7 @@ func TestLoadErrors(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.files["ordr.cue"] = config
+			tt.files["ordr.yaml"] = config
 			if _, ok := tt.files["g/x.cue"]; !ok {
 				tt.files["g/x.cue"] = ""
 			}
@@ -131,9 +133,9 @@ func TestLoadErrors(t *testing.T) {
 
 func TestLoadReturnsValidationError(t *testing.T) {
 	root := writeTree(t, map[string]string{
-		"ordr.cue": config,
-		"k/a.md":   rec("a"),
-		"g/x.cue":  `a: moreValuableThan: ["a"]`,
+		"ordr.yaml": config,
+		"k/a.md":    rec("a"),
+		"g/x.cue":   `a: moreValuableThan: ["a"]`,
 	})
 	ws, err := workspace.Discover(root)
 	require.NoError(t, err)
@@ -144,7 +146,7 @@ func TestLoadReturnsValidationError(t *testing.T) {
 }
 
 func TestWriteProjection(t *testing.T) {
-	root := writeTree(t, map[string]string{"ordr.cue": config, "k/.keep": "", "g/.keep": ""})
+	root := writeTree(t, map[string]string{"ordr.yaml": config, "k/.keep": "", "g/.keep": ""})
 	ws, err := workspace.Discover(root)
 	require.NoError(t, err)
 

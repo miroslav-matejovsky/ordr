@@ -25,7 +25,7 @@ const (
 const usage = `usage: ordr project [PROJECTION] [--workspace PATH] [--stdout]
 
 PROJECTION  all (default), value, uncertainty, complexity, relationships, readiness
---workspace folder inside the workspace; ordr.cue is searched upward (default ".")
+--workspace folder inside the workspace; ordr.yaml is searched upward (default ".")
 --stdout    print projections instead of writing them to the projections folder
 `
 

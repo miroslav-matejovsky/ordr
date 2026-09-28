@@ -16,6 +16,7 @@ excludeFiles:
 
 vendors:
   cue: { in: "cuelang.org/go/**" }
+  yaml: { in: "go.yaml.in/yaml/**" }
 
 # One component per bounded context. Dependencies point toward the domain:
 # main -> cli -> workspace, projections -> graph -> knowledge.
@@ -35,7 +36,7 @@ deps:
     mayDependOn: [workspace, projections]
   workspace:
     mayDependOn: [knowledge, graph, cuegraph]
-    canUse: [cue]
+    canUse: [yaml]
   projections:
     mayDependOn: [knowledge, graph]
   cuegraph:

@@ -33,7 +33,7 @@ ordr project [PROJECTION] [--workspace PATH] [--stdout]
 ```
 
 - `PROJECTION`: `all` (default), `value`, `uncertainty`, `complexity`, `relationships`, `readiness`.
-- `--workspace`: a folder inside the workspace. `ordr.cue` is searched upward from it. Default `.`.
+- `--workspace`: a folder inside the workspace. `ordr.yaml` is searched upward from it. Default `.`.
 - `--stdout`: print projections instead of writing them.
 - Exit codes: `0` success, `1` invalid sources or I/O failure, `2` invalid command line.
 
@@ -41,18 +41,18 @@ ordr project [PROJECTION] [--workspace PATH] [--stdout]
 
 ```text
 my-workspace/
-├── ordr.cue        # folder configuration, marks the root
+├── ordr.yaml       # folder configuration, marks the root
 ├── knowledge/*.md  # opportunity records, source of truth
 ├── graph/*.cue     # comparisons and relations, source of truth
 └── projections/    # generated, safe to delete
 ```
 
-`ordr.cue` names every folder explicitly. There are no defaults.
+`ordr.yaml` names every folder explicitly. There are no defaults.
 
-```cue
-knowledge:   "knowledge"
-graph:       "graph"
-projections: "projections"
+```yaml
+knowledge: knowledge
+graph: graph
+projections: projections
 ```
 
 ## Knowledge format

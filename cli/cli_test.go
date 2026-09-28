@@ -19,7 +19,7 @@ const basic = "../examples/basic"
 func copyWorkspace(t *testing.T, src string) string {
 	t.Helper()
 	dst := t.TempDir()
-	for _, pattern := range []string{"ordr.cue", "knowledge/*.md", "graph/*.cue"} {
+	for _, pattern := range []string{"ordr.yaml", "knowledge/*.md", "graph/*.cue"} {
 		matches, err := filepath.Glob(filepath.Join(src, pattern))
 		require.NoError(t, err)
 		require.NotEmpty(t, matches, pattern)
